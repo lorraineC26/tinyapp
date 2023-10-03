@@ -34,7 +34,6 @@ app.post("/urls", (req, res) => {
   urlDatabase[id] = req.body.longURL;
   
   res.redirect(`/urls/${id}`);
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/u/:id", (req, res) => {
