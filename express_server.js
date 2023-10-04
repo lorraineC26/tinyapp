@@ -23,6 +23,7 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+// browse
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
@@ -32,29 +33,45 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+// add new url
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
+  // console.log(req.body); // Log the POST request body to the console
   const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
-  
-  res.redirect(`/urls/${id}`);
+  const existedWeb = Object.values(urlDatabase);
+  if (! existedWeb.includes(req.body.longURL)) { // check if the new url has existed
+    urlDatabase[id] = req.body.longURL;
+    return res.redirect(`/urls/${id}`);
+  }
+  return res.send("Your input has already existed.");
+
 });
 
+// redirect to long url page
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
 });
 
+// delete
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   delete urlDatabase[id];
   return res.redirect("/urls");
 });
 
+// read
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
+
+// edit
+app.post("/urls/edit/:id", (req, res) => {
+  const id = req.params.id;
+  urlDatabase[id] = req.body.newLongURL;
+  return res.redirect("/urls");
+});
+
 
 app.get("/urls.json", (req, res) => {
   res.send(urlDatabase);
