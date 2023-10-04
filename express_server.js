@@ -31,6 +31,12 @@ app.post("/login", (req, res) => {
   return res.redirect("/urls");
 });
 
+// logout
+app.post("/logout", (req, res) => {
+  res.clearCookie("username", req.body.username);
+  return res.redirect("/urls");
+});
+
 // browse
 app.get("/urls", (req, res) => {
   const templateVars = { username: req.cookies["username"], urls: urlDatabase };
