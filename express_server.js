@@ -23,6 +23,12 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+// login
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  return res.redirect("/urls");
+});
+
 // browse
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
