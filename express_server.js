@@ -25,6 +25,11 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+// browse registration page
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
 // login
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
