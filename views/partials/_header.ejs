@@ -10,7 +10,8 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
 
-        <form action="/login" method="POST">
+        <form action="/login" method="POST" style="margin-left:60em;">
+          Logged in as: <%= username %>
           <input type="text" name="username" placeholder="username"/>
           <button type="submit" class="btn btn-primary">Login</button>
         </form>
