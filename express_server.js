@@ -37,7 +37,11 @@ app.get("/", (req, res) => {
 // browse registration page
 app.get("/register", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]] };
-  res.render("register", templateVars);
+  if (req.cookies["user_id"]) { // when user is logged in
+    return res.redirect("/urls");
+  }
+
+  return res.render("register", templateVars);
 });
 
 // add new user
@@ -67,7 +71,12 @@ app.post("/register", (req, res) => {
 // browse login page
 app.get("/login", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]] };
-  res.render("login", templateVars);
+  
+  if (req.cookies["user_id"]) {
+    return res.redirect("/urls");
+  }
+
+  return res.render("login", templateVars);
 });
 
 // login
@@ -103,13 +112,19 @@ app.get("/urls", (req, res) => {
 
 // browse page of adding new url
 app.get("/urls/new", (req, res) => {
+  if (! req.cookies["user_id"]) { // when user is not logged in
+    return res.redirect("/login");
+  }
   const templateVars = { user: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
 
 // add new url
 app.post("/urls", (req, res) => {
-  // console.log(req.body); // Log the POST request body to the console
+  if (! req.cookies["user_id"]) {
+    return res.send("Please log in to shorten URLs!");
+  }
+
   const id = generateRandomString();
   const existedWeb = Object.values(urlDatabase);
   if (! existedWeb.includes(req.body.longURL)) { // check if the new url has existed
@@ -122,6 +137,10 @@ app.post("/urls", (req, res) => {
 
 // redirect to long url page
 app.get("/u/:id", (req, res) => {
+  if (! urlDatabase[req.params.id]) {
+    return res.send("Error: this shorten url does not exist!");
+  }
+
   const longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
 });
