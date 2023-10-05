@@ -1,21 +1,24 @@
 const express = require("express");
+const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcryptjs");
 const { generateRandomString, findUserByEmail, authenticateUser, urlsForUser } = require("./helper");
+
 const app = express();
 const PORT = 8080; // default port 8080
 
+// configuration
 app.set('view engine', 'ejs');
-app.use(cookieParser());
+
+// middleware
+app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true })); // convert the request body from a Buffer into string
+app.use(cookieParser());
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -27,18 +30,19 @@ const urlDatabase = {
   },
 };
 
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-};
+const users = {};
+// const users = {
+//   userRandomID: {
+//     id: "userRandomID",
+//     email: "user@example.com",
+//     password: "purple-monkey-dinosaur",
+//   },
+//   user2RandomID: {
+//     id: "user2RandomID",
+//     email: "user2@example.com",
+//     password: "dishwasher-funk",
+//   },
+// };
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -57,7 +61,9 @@ app.get("/register", (req, res) => {
 // add new user
 app.post("/register", (req, res) => {
   const userID = generateRandomString();
-  const { email, password } = req.body;
+  //const { email, password } = req.body;
+  const password = req.body.password;
+  const email = req.body.email;
 
   // if (email === "" || password === "") {
   //   return res.status(400).send("Error: either your email or password is empty!");
@@ -73,7 +79,11 @@ app.post("/register", (req, res) => {
   if (result.error !== null) {
     return res.status(400).send(result.error);
   }
-  users[userID] = { id: userID, email, password };
+
+  const salt = bcrypt.genSaltSync(10);
+  const hashedPassword = bcrypt.hashSync(password, salt);
+
+  users[userID] = { id: userID, email, password: hashedPassword };
   res.cookie("user_id", userID);
   res.redirect("/urls");
 });
@@ -93,7 +103,7 @@ app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const user = findUserByEmail(email, users);
   if (user) {
-    if (user.password === password) {
+    if (bcrypt.compareSync(password, user.password)) {
       // Happy path: user exists and password matches
       res.cookie("user_id", user.id);
       return res.redirect("/urls");
@@ -213,7 +223,7 @@ app.post("/urls/edit/:id", (req, res) => {
   if (!userOwnedShortURLs.includes(id)) {
     return res.send("This short URL does not exist in your account!");
   }
-  
+
   // turn current longURLs into an array
   let existedWeb = [];
   for (const id in urlDatabase) {
