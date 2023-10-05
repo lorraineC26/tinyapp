@@ -1,6 +1,6 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
-const { findUserByEmail } = require("./helper");
+const { generateRandomString, findUserByEmail, authenticateUser } = require("./helper");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -30,9 +30,9 @@ const users = {
   },
 };
 
-const generateRandomString = function() {
-  return Math.random().toString(36).substring(2,8);
-};
+// const generateRandomString = function() {
+//   return Math.random().toString(36).substring(2,8);
+// };
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -47,7 +47,22 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const userID = generateRandomString();
   const { email, password } = req.body;
-  users[userID] = {id: userID, email, password};
+
+  // if (email === "" || password === "") {
+  //   return res.status(400).send("Error: either your email or password is empty!");
+  // }
+  // const user = findUserByEmail(email, users);
+  // if (user) {
+  //   return res.status(400).send("Error: email registered already!");
+  // }
+
+  // users[userID] = {id: userID, email, password};
+
+  const result = authenticateUser(email, users, password);
+  if (result.error !== null) {
+    return res.status(400).send(result.error);
+  }
+  users[userID] = { id: userID, email, password };
   res.cookie("user_id", userID);
   res.redirect("/urls");
 });
