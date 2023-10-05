@@ -3,7 +3,7 @@ const morgan = require('morgan');
 // const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
-const { generateRandomString, findUserByEmail, authenticateUser, urlsForUser } = require("./helper");
+const { generateRandomString, findUserByEmail, authenticateUser, urlsForUser } = require("./helpers");
 
 const app = express();
 const PORT = 8080; // default port 8080
