@@ -30,10 +30,6 @@ const users = {
   },
 };
 
-// const generateRandomString = function() {
-//   return Math.random().toString(36).substring(2,8);
-// };
-
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -65,6 +61,11 @@ app.post("/register", (req, res) => {
   users[userID] = { id: userID, email, password };
   res.cookie("user_id", userID);
   res.redirect("/urls");
+});
+
+// browse login page
+app.get("/login", (req, res) => {
+  res.render("login");
 });
 
 // login
