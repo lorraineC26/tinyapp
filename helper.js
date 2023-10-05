@@ -25,4 +25,15 @@ const authenticateUser = (email, usersDatabase, password) => {
   return { error: null, statusCode: null, user};
 };
 
-module.exports = { generateRandomString, findUserByEmail, authenticateUser };
+//  returns the URLs where the userID is equal to the id of the currently logged-in user
+const urlsForUser = (loggedUserID, urlDatabase) => {
+  const userSpecficURLs = {}; // same structure as urlDatabase but specific with users
+  for (const id in urlDatabase) {
+    if (urlDatabase[id].userID === loggedUserID) {
+      userSpecficURLs[id] = urlDatabase[id];
+    }
+  }
+  return userSpecficURLs;
+};
+
+module.exports = { generateRandomString, findUserByEmail, authenticateUser, urlsForUser };

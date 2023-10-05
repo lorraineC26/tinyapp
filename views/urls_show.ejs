@@ -17,19 +17,23 @@
   <div class="card text-center">
     <div class="card-header"></div>
     <div class="card-body">
-      <h5 class="card-title">TinyURL for: <%= longURL %></h5>
-      <p class="card-text">
-        Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
-      </p>
-    </div>
-    <div class="card-body">
-      <h5 class="card-title">Edit</h5>
-      <form action="/urls/edit/<%= id %>", method="POST">
-        <p class="card-text"> 
-          New URL: <input type="text" name="newLongURL" />
-          <button type="submit" class="btn btn-primary">Submit</button>
+      <% if (! user) { %>
+        <h5>Please login to see this URL</h5>
+      <% } else { %>
+        <h5 class="card-title">TinyURL for: <%= longURL %></h5>
+        <p class="card-text">
+          Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
-      </form>
+      </div>
+      <div class="card-body">
+        <h5 class="card-title">Edit</h5>
+        <form action="/urls/edit/<%= id %>", method="POST">
+          <p class="card-text"> 
+            New URL: <input type="text" name="newLongURL" />
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </p>
+        </form>
+      <% } %>
     </div>
     <div class="card-footer text-muted"></div>
   </div>

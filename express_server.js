@@ -1,6 +1,6 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
-const { generateRandomString, findUserByEmail, authenticateUser } = require("./helper");
+const { generateRandomString, findUserByEmail, authenticateUser, urlsForUser } = require("./helper");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -12,9 +12,19 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -75,7 +85,6 @@ app.get("/login", (req, res) => {
   if (req.cookies["user_id"]) {
     return res.redirect("/urls");
   }
-
   return res.render("login", templateVars);
 });
 
@@ -106,7 +115,12 @@ app.post("/logout", (req, res) => {
 
 // browse all existing url
 app.get("/urls", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
+  if (!req.cookies["user_id"]) {
+    return res.send("Please log in to see your urls!");
+  }
+  // show only the current logged-in user's urls
+  const userSpecficURLs = urlsForUser(req.cookies["user_id"], urlDatabase);
+  const templateVars = { user: users[req.cookies["user_id"]], urls: userSpecficURLs };
   res.render("urls_index", templateVars);
 });
 
@@ -122,13 +136,21 @@ app.get("/urls/new", (req, res) => {
 // add new url
 app.post("/urls", (req, res) => {
   if (! req.cookies["user_id"]) {
-    return res.send("Please log in to shorten URLs!");
+    return res.send("Please log in in order to shorten URLs!");
   }
 
   const id = generateRandomString();
-  const existedWeb = Object.values(urlDatabase);
-  if (! existedWeb.includes(req.body.longURL)) { // check if the new url has existed
-    urlDatabase[id] = req.body.longURL;
+  // turn current longURLs into an array
+  let existedWeb = [];
+  for (const id in urlDatabase) {
+    const longURL = urlDatabase[id].longURL;
+    existedWeb.push(longURL);
+  }
+  // check if the new url has existed
+  if (! existedWeb.includes(req.body.longURL)) {
+    urlDatabase[id] = {};
+    urlDatabase[id]['longURL'] = req.body.longURL;
+    urlDatabase[id]['userID'] = req.cookies['user_id'];
     return res.redirect(`/urls/${id}`);
   }
   return res.send("Your input has already existed.");
@@ -141,29 +163,65 @@ app.get("/u/:id", (req, res) => {
     return res.send("Error: this shorten url does not exist!");
   }
 
-  const longURL = urlDatabase[req.params.id];
+  const longURL = urlDatabase[req.params.id].longURL;
   res.redirect(longURL);
 });
 
 // delete existed url
 app.post("/urls/:id/delete", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    return res.send("Please log in to delete URLs!");
+  }
   const id = req.params.id;
+  const userSpecficURLs = urlsForUser(req.cookies["user_id"], urlDatabase);
+  const userOwnedShortURLs = Object.keys(userSpecficURLs);
+  if (! userOwnedShortURLs.includes(id)) {
+    return res.send("This short URL does not exist in your account!");
+  }
   delete urlDatabase[id];
   return res.redirect("/urls");
 });
 
 // read specific url
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { user: req.cookies["user_id"], id: req.params.id, longURL: urlDatabase[req.params.id] };
+  if (!req.cookies["user_id"]) {
+    return res.send("Please log in to see this URL!");
+  }
+  
+  const userSpecficURLs = urlsForUser(req.cookies["user_id"], urlDatabase);
+  const userOwnedShortURLs = Object.keys(userSpecficURLs);
+  if (! userOwnedShortURLs.includes(req.params.id)) {
+    return res.send("Sorry, you do not own this URL :(");
+  }
+
+  const templateVars = {
+    user: req.cookies["user_id"],
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id]['longURL']
+  };
   res.render("urls_show", templateVars);
 });
 
 // edit existing url
 app.post("/urls/edit/:id", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    return res.send("Please log in to edit URLs!");
+  }
   const id = req.params.id;
-  const existedWeb = Object.values(urlDatabase);
-  if (!existedWeb.includes(req.body.newLongURL)) {
-    urlDatabase[id] = req.body.newLongURL;
+  const userSpecficURLs = urlsForUser(req.cookies["user_id"], urlDatabase);
+  const userOwnedShortURLs = Object.keys(userSpecficURLs);
+  if (!userOwnedShortURLs.includes(id)) {
+    return res.send("This short URL does not exist in your account!");
+  }
+  
+  // turn current longURLs into an array
+  let existedWeb = [];
+  for (const id in urlDatabase) {
+    const longURL = urlDatabase[id].longURL;
+    existedWeb.push(longURL);
+  }
+  if (! existedWeb.includes(req.body.newLongURL)) {
+    urlDatabase[id].longURL = req.body.newLongURL;
     return res.redirect("/urls");
   }
   return res.send("Your input has already existed.");

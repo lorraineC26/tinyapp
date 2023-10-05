@@ -29,22 +29,27 @@
         </tr>
       </thead>
       <tbody>
-        <% for (let id in urls) { %>
-          <tr>
-            <td><a href="/urls/<%= id %>"><%= id %></a></td>
-            <td><%= urls[id] %></td>
-            <td>
-              <form method="POST" action="/urls/<%= id %>/delete">
-                <button type="submit" class="btn btn-primary">Delete</button>
-              </form>
-            </td>
-            <td>
-            <a href="/urls/<%= id %>">
-              <button type="submit" class="btn btn-primary">Edit</button>
-            </a>
-            </td>
-          </tr>
-          <% } %>
+        <%if (! user) {%>
+          <p><h5> Please login to see your urls!</h5></p>
+        <%} else {%>
+          <% for (let id in urls) { %>
+            <tr>
+              <td><a href="/urls/<%= id %>"><%= id %></a></td>
+              <td><%= urls[id].longURL %></td>
+              <td>
+                <form method="POST" action="/urls/<%= id %>/delete">
+                  <button type="submit" class="btn btn-primary">Delete</button>
+                </form>
+              </td>
+              <td>
+              <a href="/urls/<%= id %>">
+                <button type="submit" class="btn btn-primary">Edit</button>
+              </a>
+              </td>
+            </tr>
+            <% } %>
+
+        <%}%>
       </tbody>
     </table>
   </main>
