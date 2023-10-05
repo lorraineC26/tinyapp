@@ -36,7 +36,8 @@ app.get("/", (req, res) => {
 
 // browse registration page
 app.get("/register", (req, res) => {
-  res.render("register");
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("register", templateVars);
 });
 
 // add new user
@@ -65,7 +66,8 @@ app.post("/register", (req, res) => {
 
 // browse login page
 app.get("/login", (req, res) => {
-  res.render("login");
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("login", templateVars);
 });
 
 // login
@@ -79,18 +81,18 @@ app.post("/login", (req, res) => {
       return res.redirect("/urls");
     } else {
       // User exists but password does not match --> respond with an error
-      return res.send("User exists but password does not match");
+      return res.status(403).send("User exists but password does not match");
     }
   } else {
     // User does not exist --> respond with an error
-    return res.redirect("/register");
+    return res.status(403).send("User does not exist");
   }
 });
 
 // logout
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  return res.redirect("/urls");
+  return res.redirect("/login");
 });
 
 // browse all existing url
@@ -140,8 +142,12 @@ app.get("/urls/:id", (req, res) => {
 // edit existing url
 app.post("/urls/edit/:id", (req, res) => {
   const id = req.params.id;
-  urlDatabase[id] = req.body.newLongURL;
-  return res.redirect("/urls");
+  const existedWeb = Object.values(urlDatabase);
+  if (!existedWeb.includes(req.body.newLongURL)) {
+    urlDatabase[id] = req.body.newLongURL;
+    return res.redirect("/urls");
+  }
+  return res.send("Your input has already existed.");
 });
 
 

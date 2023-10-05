@@ -12,11 +12,18 @@
 </head>
 
 <body>
+  <header>
+    <%- include('partials/_header')%>
+  </header>
+  
   <div>
-      <form action="/login" method="POST" style="margin-left:40em;">
-        <input type="email" name="email" placeholder="email address" />
+    <h2>Login:</h2>
+      <form action="/login" method="POST">
+        <div>Email address</div>
+        <input type="email" name="email" placeholder="enter email" />
+        <div>Password</div>
         <input type="password" name="password" placeholder="password" />
-        <button type="submit" class="btn btn-primary">Login</button>
+        <div><button type="submit" class="btn btn-primary">Login</button></div>
       </form>
   </div>
 <!-- Bootstrap JS -->
