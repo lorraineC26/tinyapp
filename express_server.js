@@ -1,12 +1,11 @@
 const express = require("express");
 const morgan = require('morgan');
-// const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
 const { generateRandomString, findUserByEmail, authenticateUser, urlsForUser } = require("./helpers");
 
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 
 // configuration
 app.set('view engine', 'ejs');
@@ -14,7 +13,6 @@ app.set('view engine', 'ejs');
 // middleware
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true })); // convert the request body from a Buffer into string
-// app.use(cookieParser());
 app.use(cookieSession({
   name: 'whateverUserID',
   keys: ["asdfasdf"],
@@ -36,18 +34,6 @@ const urlDatabase = {
 };
 
 const users = {};
-// const users = {
-//   userRandomID: {
-//     id: "userRandomID",
-//     email: "user@example.com",
-//     password: "purple-monkey-dinosaur",
-//   },
-//   user2RandomID: {
-//     id: "user2RandomID",
-//     email: "user2@example.com",
-//     password: "dishwasher-funk",
-//   },
-// };
 
 app.get("/", (req, res) => {
   if (req.session["user_id"]) {
@@ -69,19 +55,8 @@ app.get("/register", (req, res) => {
 // add new user
 app.post("/register", (req, res) => {
   const userID = generateRandomString();
-  //const { email, password } = req.body;
   const password = req.body.password;
   const email = req.body.email;
-
-  // if (email === "" || password === "") {
-  //   return res.status(400).send("Error: either your email or password is empty!");
-  // }
-  // const user = findUserByEmail(email, users);
-  // if (user) {
-  //   return res.status(400).send("Error: email registered already!");
-  // }
-
-  // users[userID] = {id: userID, email, password};
 
   const result = authenticateUser(email, users, password);
   if (result.error !== null) {
@@ -92,7 +67,6 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, salt);
 
   users[userID] = { id: userID, email, password: hashedPassword };
-  //res.cookie("user_id", userID);
   req.session["user_id"] = userID;
   res.redirect("/urls");
 });
@@ -127,7 +101,6 @@ app.post("/login", (req, res) => {
 
 // logout
 app.post("/logout", (req, res) => {
-  // res.clearCookie("user_id");
   req.session = null;
   return res.redirect("/login");
 });
@@ -137,7 +110,6 @@ app.get("/urls", (req, res) => {
   if (!req.session["user_id"]) {
     const templateVars = { user: null};
     return res.render("urls_index", templateVars);
-    // return res.send("Please login to see your urls!");
   }
   // show only the current logged-in user's urls
   const userSpecficURLs = urlsForUser(req.session["user_id"], urlDatabase);
@@ -167,7 +139,7 @@ app.post("/urls", (req, res) => {
     const longURL = urlDatabase[id].longURL;
     existedWeb.push(longURL);
   }
-  // check if the new url has existed
+  // check if the new url has existed in our database
   if (! existedWeb.includes(req.body.longURL)) {
     urlDatabase[id] = {};
     urlDatabase[id]['longURL'] = req.body.longURL;
@@ -182,7 +154,6 @@ app.get("/u/:id", (req, res) => {
   if (! urlDatabase[req.params.id]) {
     return res.send("Error: this shorten url does not exist!");
   }
-
   const longURL = urlDatabase[req.params.id].longURL;
   res.redirect(longURL);
 });
@@ -250,5 +221,3 @@ app.post("/urls/:id", (req, res) => {
   }
   return res.send("Your input has already existed.");
 });
-
-
