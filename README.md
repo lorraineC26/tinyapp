@@ -10,7 +10,6 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 !["create new urls"](https://github.com/lorraineC26/tinyapp/blob/main/docs/createNewUrls.png?raw=true)
 
-
 ## Dependencies
 
 - Node.js
