@@ -50,7 +50,10 @@ const users = {};
 // };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (req.session["user_id"]) {
+    return res.redirect("/urls");
+  }
+  return res.redirect("/login");
 });
 
 // browse registration page
@@ -97,7 +100,6 @@ app.post("/register", (req, res) => {
 // browse login page
 app.get("/login", (req, res) => {
   const templateVars = { user: users[req.session["user_id"]] };
-  
   if (req.session["user_id"]) {
     return res.redirect("/urls");
   }
@@ -133,7 +135,9 @@ app.post("/logout", (req, res) => {
 // browse all existing url
 app.get("/urls", (req, res) => {
   if (!req.session["user_id"]) {
-    return res.send("Please log in to see your urls!");
+    const templateVars = { user: null};
+    return res.render("urls_index", templateVars);
+    // return res.send("Please login to see your urls!");
   }
   // show only the current logged-in user's urls
   const userSpecficURLs = urlsForUser(req.session["user_id"], urlDatabase);
@@ -153,7 +157,7 @@ app.get("/urls/new", (req, res) => {
 // add new url
 app.post("/urls", (req, res) => {
   if (! req.session["user_id"]) {
-    return res.send("Please log in in order to shorten URLs!");
+    return res.send("Please login in order to shorten URLs!");
   }
 
   const id = generateRandomString();
@@ -171,7 +175,6 @@ app.post("/urls", (req, res) => {
     return res.redirect(`/urls/${id}`);
   }
   return res.send("Your input has already existed.");
-
 });
 
 // redirect to long url page
@@ -187,7 +190,7 @@ app.get("/u/:id", (req, res) => {
 // delete existed url
 app.post("/urls/:id/delete", (req, res) => {
   if (!req.session["user_id"]) {
-    return res.send("Please log in to delete URLs!");
+    return res.send("Please login to delete URLs!");
   }
   const id = req.params.id;
   const userSpecficURLs = urlsForUser(req.session["user_id"], urlDatabase);
@@ -202,9 +205,13 @@ app.post("/urls/:id/delete", (req, res) => {
 // read specific url
 app.get("/urls/:id", (req, res) => {
   if (!req.session["user_id"]) {
-    return res.send("Please log in to see this URL!");
+    return res.send("Please login to see this URL!");
   }
-  
+
+  if (!urlDatabase[req.params.id]) {
+    return res.send("Error: this shorten url does not exist!");
+  }
+
   const userSpecficURLs = urlsForUser(req.session["user_id"], urlDatabase);
   const userOwnedShortURLs = Object.keys(userSpecficURLs);
   if (! userOwnedShortURLs.includes(req.params.id)) {
@@ -220,9 +227,9 @@ app.get("/urls/:id", (req, res) => {
 });
 
 // edit existing url
-app.post("/urls/edit/:id", (req, res) => {
+app.post("/urls/:id", (req, res) => {
   if (!req.session["user_id"]) {
-    return res.send("Please log in to edit URLs!");
+    return res.send("Please login to edit URLs!");
   }
   const id = req.params.id;
   const userSpecficURLs = urlsForUser(req.session["user_id"], urlDatabase);
@@ -244,12 +251,4 @@ app.post("/urls/edit/:id", (req, res) => {
   return res.send("Your input has already existed.");
 });
 
-
-app.get("/urls.json", (req, res) => {
-  res.send(urlDatabase);
-});
-
-app.get('/Hello', (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
 
